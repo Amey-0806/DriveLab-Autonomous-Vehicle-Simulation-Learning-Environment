@@ -64,6 +64,25 @@ class Polygon {
       }
    }
 
+   distanceToPoint(point) {
+      return Math.min(...this.segments.map((s) => s.distanceToPoint(point)));
+   }
+
+   distanceToPoly(poly) {
+      return Math.min(...this.points.map((p) => poly.distanceToPoint(p)));
+   }
+
+   intersectsPoly(poly) {
+      for (let s1 of this.segments) {
+         for (let s2 of poly.segments) {
+            if (getIntersection(s1.p1, s1.p2, s2.p1, s2.p2)) {
+               return true;
+            }
+         }
+      }
+      return false;
+   }
+
    containsSegment(seg) {
       const midpoint = average(seg.p1, seg.p2);
       return this.containsPoint(midpoint);
@@ -74,7 +93,7 @@ class Polygon {
       let intersectionCount = 0;
       for (const seg of this.segments) {
          const int = getIntersection(outerPoint, point, seg.p1, seg.p2);
-         if(int){
+         if (int) {
             intersectionCount++;
          }
       }
