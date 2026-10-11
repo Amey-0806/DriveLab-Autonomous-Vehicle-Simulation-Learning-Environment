@@ -10,20 +10,44 @@ class GraphEditor {
       this.hovered = null;
       this.dragging = false;
       this.mouse = null;
+   }
 
+   enable() {
       this.#addEventListeners();
    }
 
+   disable() {
+      this.#removeEventListeners();
+      this.selected = false;
+      this.hovered = false;
+   }
+
    #addEventListeners() {
-      this.canvas.addEventListener("mousedown", this.#handleMouseDown.bind(this));
-      this.canvas.addEventListener("mousemove", this.#handleMouseMove.bind(this));
-      this.canvas.addEventListener("contextmenu", (evt) => evt.preventDefault());
-      this.canvas.addEventListener("mouseup", () => this.dragging = false);
+      this.boundMouseDown = this.#handleMouseDown.bind(this);
+      this.boundMouseMove = this.#handleMouseMove.bind(this);
+      this.boundMouseUp = () => (this.dragging = false);
+      this.boundContextMenu = (evt) => evt.preventDefault();
+
+      this.canvas.addEventListener("mousedown", this.boundMouseDown);
+      this.canvas.addEventListener("mousemove", this.boundMouseMove);
+      this.canvas.addEventListener("mouseup", this.boundMouseUp);
+      this.canvas.addEventListener("contextmenu", this.boundContextMenu);
+   }
+
+   #removeEventListeners() {
+      this.canvas.removeEventListener("mousedown", this.boundMouseDown);
+      this.canvas.removeEventListener("mousemove", this.boundMouseMove);
+      this.canvas.removeEventListener("mouseup", this.boundMouseUp);
+      this.canvas.removeEventListener("contextmenu", this.boundContextMenu);
    }
 
    #handleMouseMove(evt) {
       this.mouse = this.viewport.getMouse(evt, true);
-      this.hovered = getNearestPoint(this.mouse, this.graph.points, 10 * this.viewport.zoom);
+      this.hovered = getNearestPoint(
+         this.mouse,
+         this.graph.points,
+         10 * this.viewport.zoom,
+      );
       if (this.dragging == true) {
          this.selected.x = this.mouse.x;
          this.selected.y = this.mouse.y;
@@ -31,14 +55,16 @@ class GraphEditor {
    }
 
    #handleMouseDown(evt) {
-      if (evt.button == 2) { // right click
+      if (evt.button == 2) {
+         // right click
          if (this.selected) {
             this.selected = null;
          } else if (this.hovered) {
             this.#removePoint(this.hovered);
          }
       }
-      if (evt.button == 0) { // left click
+      if (evt.button == 0) {
+         // left click
          if (this.hovered) {
             this.#select(this.hovered);
             this.dragging = true;
